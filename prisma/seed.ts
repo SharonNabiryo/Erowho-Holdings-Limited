@@ -185,7 +185,7 @@ async function main() {
     { name: 'Priya Sharma', location: 'London → Toronto', propertyType: 'Relocation Purchase', rating: 5, initials: 'PS', text: 'I relocated from London and knew nothing about Toronto. The AI assistant helped me understand neighbourhoods before I even arrived. Outstanding service from start to close.', isFeatured: false },
   ]
   for (const t of testimonials) {
-    await prisma.testimonial.create({ data: { ...t, sortOrder: testimonials.indexOf(t) } }).catch(() => {})
+    await prisma.testimonial.create({ data: t }).catch(() => {})
   }
 
   // ── Sample leads ─────────────────────────────────────────────
@@ -193,16 +193,16 @@ async function main() {
   await prisma.lead.createMany({
     skipDuplicates: true,
     data: [
-      { firstName: 'Jennifer', lastName: 'Williams', email: 'jwilliams@email.com', phone: '+1 416 555 0911', inquiryType: InquiryType.BUY, source: LeadSource.PROPERTY_INQUIRY, status: LeadStatus.QUALIFIED, budget: 1500000, budgetMax: 2000000, preferredCities: ['Toronto'], message: 'Looking for a 3-bed condo in King West or Liberty Village.', score: 85, isHot: true, propertyId: sampleProperty?.id },
-      { firstName: 'Marcus', lastName: 'Chen', email: 'mchen@invest.com', phone: '+1 604 555 0734', inquiryType: InquiryType.INVEST, source: LeadSource.WEBSITE_CONTACT, status: LeadStatus.CONTACTED, budget: 3000000, preferredCities: ['Vancouver', 'Toronto'], message: 'Looking to build a $5M Canadian residential portfolio.', score: 92, isHot: true },
-      { firstName: 'Sofia', lastName: 'Rodriguez', email: 'sofia.r@mail.com', phone: '+1 305 555 0482', inquiryType: InquiryType.BUY, source: LeadSource.AI_CHAT, status: LeadStatus.NEW, budget: 800000, preferredCities: ['Miami'], message: 'First-time buyer, pre-approved for $800K.', score: 60 },
-      { firstName: 'Andrew', lastName: 'Thompson', email: 'andrew.t@corp.com', phone: '+1 312 555 0219', inquiryType: InquiryType.VALUATION, source: LeadSource.VALUATION_REQUEST, status: LeadStatus.NEW, message: 'Need valuation on my Lincoln Park 3-flat.', score: 70 },
-      { firstName: 'Yuki', lastName: 'Tanaka', email: 'yukitanaka@yahoo.co.jp', inquiryType: InquiryType.CROSS_BORDER, source: LeadSource.REFERRAL, status: LeadStatus.QUALIFIED, budget: 5000000, preferredCities: ['Vancouver'], message: 'Japanese investor looking at Vancouver luxury.', score: 95, isHot: true },
+      { name: 'Jennifer Williams', email: 'jwilliams@email.com', phone: '+1 416 555 0911', inquiryType: InquiryType.BUYING, source: LeadSource.WEBSITE, status: LeadStatus.QUALIFIED, budget: '1500000', message: 'Looking for a 3-bed condo in King West or Liberty Village.', priority: 1, propertyId: sampleProperty?.id },
+      { name: 'Marcus Chen', email: 'mchen@invest.com', phone: '+1 604 555 0734', inquiryType: InquiryType.INVESTING, source: LeadSource.WEBSITE, status: LeadStatus.CONTACTED, budget: '3000000', message: 'Looking to build a $5M Canadian residential portfolio.', priority: 1 },
+      { name: 'Sofia Rodriguez', email: 'sofia.r@mail.com', phone: '+1 305 555 0482', inquiryType: InquiryType.BUYING, source: LeadSource.AI_ASSISTANT, status: LeadStatus.NEW, budget: '800000', message: 'First-time buyer, pre-approved for $800K.', priority: 2 },
+      { name: 'Andrew Thompson', email: 'andrew.t@corp.com', phone: '+1 312 555 0219', inquiryType: InquiryType.VALUATION, source: LeadSource.OTHER, status: LeadStatus.NEW, message: 'Need valuation on my Lincoln Park 3-flat.', priority: 2 },
+      { name: 'Yuki Tanaka', email: 'yukitanaka@yahoo.co.jp', inquiryType: InquiryType.CROSS_BORDER, source: LeadSource.REFERRAL, status: LeadStatus.QUALIFIED, budget: '5000000', message: 'Japanese investor looking at Vancouver luxury.', priority: 1 },
     ],
   })
 
   // ── Newsletter subscribers ───────────────────────────────────
-  await prisma.newsletterSubscriber.createMany({
+  await prisma.subscriber.createMany({
     skipDuplicates: true,
     data: [
       { email: 'investor1@gmail.com', name: 'Alex Kim', tags: ['investor'] },
