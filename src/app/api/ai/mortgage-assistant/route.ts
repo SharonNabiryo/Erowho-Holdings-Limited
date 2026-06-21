@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const SYSTEM = `You are a mortgage education specialist at Erowho Holdings Limited, covering both Canadian and US mortgage systems.
 
 You help users understand mortgage concepts, calculate affordability, and navigate financing. You are educational and precise. Always recommend consulting a licensed mortgage professional for personalised advice.

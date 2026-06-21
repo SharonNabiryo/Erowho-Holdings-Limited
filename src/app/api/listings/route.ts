@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PROPERTIES } from '@/data'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams
 

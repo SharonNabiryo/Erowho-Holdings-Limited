@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const SYSTEM = `You are an expert real estate property matchmaker for Erowho Holdings Limited, operating across Canada and the United States.
 
 A user will describe what they're looking for in natural language. Your job is to:

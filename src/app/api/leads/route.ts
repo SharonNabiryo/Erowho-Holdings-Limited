@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const schema = z.object({
   name:        z.string().min(2, 'Name required'),
   email:       z.string().email('Valid email required'),

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const SYSTEM = `You are a senior real estate investment advisor at Erowho Holdings Limited, with deep expertise in Canadian and US real estate markets, cap rates, NOI analysis, and cross-border structuring.
 
 Given investment parameters, provide a comprehensive analysis. Always respond in this exact JSON format:

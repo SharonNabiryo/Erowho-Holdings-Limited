@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const SYSTEM = `You are a luxury real estate copywriter for Erowho Holdings Limited. You write compelling, precise, aspirational property descriptions for discerning buyers.
 
 Given property details, generate:

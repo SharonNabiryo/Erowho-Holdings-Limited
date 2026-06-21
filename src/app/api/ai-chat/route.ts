@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { ChatMessage } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 const SYSTEM = `You are a knowledgeable real estate advisor for Erowho Holdings Limited, a premium brokerage operating across Canada (Toronto, Vancouver, Montreal, Calgary, Ottawa) and the United States (New York, Miami, Los Angeles, Chicago, Houston).
 
 Your expertise includes:

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const bookingSchema = z.object({
   type:       z.enum(['PROPERTY_VIEWING','CONSULTATION','INVESTMENT_CALL','VALUATION','VIRTUAL_TOUR']),
   name:       z.string().min(2),
