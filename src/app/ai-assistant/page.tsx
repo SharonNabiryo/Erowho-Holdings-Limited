@@ -11,7 +11,7 @@ const STARTERS = [
   { label: 'First-Time Buyer', prompt: 'Walk me through buying my first home in Canada step by step.' },
   { label: 'Mortgage Terms', prompt: 'Explain the difference between GDS, TDS, and what banks look at.' },
   { label: 'Neighbourhood',  prompt: 'What are the best up-and-coming neighbourhoods in Vancouver right now?' },
-  { label: 'Luxury Market',  prompt: 'What's happening in the Toronto luxury market above $3M right now?' },
+  { label: 'Luxury Market',  prompt: "What's happening in the Toronto luxury market above $3M right now?" },
   { label: 'FIRPTA',         prompt: 'Explain FIRPTA and how it affects Canadians selling US property.' },
 ]
 
