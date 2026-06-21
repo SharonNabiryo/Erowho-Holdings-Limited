@@ -1,0 +1,446 @@
+// Erowho Holdings — Enterprise Prisma Schema v2
+// npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── ENUMS ────────────────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  AGENT
+  OWNER
+  CLIENT
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  PENDING
+  SOLD
+  LEASED
+  ARCHIVED
+  LISTING_OF_WEEK
+  LISTING_OF_MONTH
+}
+
+enum PropertyType {
+  BUY
+  RENT
+  LUXURY
+  INVESTMENT
+  COMMERCIAL
+  LAND
+  NEW_DEVELOPMENT
+}
+
+enum Country {
+  CA
+  US
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  APPOINTMENT_SET
+  ACTIVE
+  NURTURING
+  CONVERTED
+  LOST
+  ARCHIVED
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  SOCIAL_MEDIA
+  GOOGLE_ADS
+  DIRECT
+  OPEN_HOUSE
+  PARTNER
+  AI_ASSISTANT
+  NEWSLETTER
+  OTHER
+}
+
+enum InquiryType {
+  BUYING
+  SELLING
+  INVESTING
+  RENTING
+  CROSS_BORDER
+  COMMERCIAL
+  PROPERTY_MANAGEMENT
+  MORTGAGE
+  VALUATION
+  GENERAL
+}
+
+enum AppointmentType {
+  PROPERTY_VIEWING
+  CONSULTATION
+  INVESTMENT_CALL
+  VALUATION
+  FOLLOW_UP
+  VIRTUAL_TOUR
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+  NO_SHOW
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ── USERS & AUTH ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(CLIENT)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  agent         Agent?
+  leads         Lead[]    @relation("AssignedLeads")
+  appointments  Appointment[] @relation("AgentAppointments")
+  notes         LeadNote[]
+  auditLogs     AuditLog[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+// ── AGENTS ───────────────────────────────────────────────────
+
+model Agent {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  title         String
+  phone         String
+  licenseNumber String?
+  bio           String    @db.Text
+  photo         String?
+  specialties   String[]
+  cities        String[]
+  languages     String[]
+  dealsCount    Int       @default(0)
+  rating        Float     @default(5.0)
+  reviewCount   Int       @default(0)
+  isActive      Boolean   @default(true)
+  isFeatured    Boolean   @default(false)
+  socialLinks   Json?     // { instagram, linkedin, twitter }
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id])
+  listings      Property[]
+  leads         Lead[]
+  appointments  Appointment[]
+  testimonials  Testimonial[]
+}
+
+// ── PROPERTIES ───────────────────────────────────────────────
+
+model Property {
+  id              String          @id @default(cuid())
+  slug            String          @unique
+  name            String
+  price           Float
+  priceLabel      String
+  address         String
+  city            String
+  province        String
+  country         Country
+  postalCode      String?
+  latitude        Float?
+  longitude       Float?
+  type            PropertyType
+  status          PropertyStatus  @default(DRAFT)
+  beds            Int             @default(0)
+  baths           Int             @default(0)
+  sqft            Int             @default(0)
+  lotSize         String?
+  yearBuilt       Int?
+  garage          Int             @default(0)
+  description     String          @db.Text
+  features        String[]
+  images          String[]
+  virtualTourUrl  String?
+  neighborhood    String?
+  walkScore       Int?
+  transitScore    Int?
+  capRate         Float?
+  roi             Float?
+  monthlyRent     Float?
+  mlsNumber       String?
+  externalId      String?         // For IDX/MLS sync
+  dataSource      String?         // "internal" | "mls" | "idx" | "attom"
+  rawData         Json?           // Store raw external data
+  tag             String?
+  isFeatured      Boolean         @default(false)
+  viewCount       Int             @default(0)
+  saveCount       Int             @default(0)
+  publishedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  agentId         String?
+  agent           Agent?          @relation(fields: [agentId], references: [id])
+  leads           Lead[]
+  appointments    Appointment[]
+  savedBy         SavedProperty[]
+  analytics       PropertyAnalytic[]
+}
+
+model SavedProperty {
+  id          String   @id @default(cuid())
+  userId      String
+  propertyId  String
+  createdAt   DateTime @default(now())
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  @@unique([userId, propertyId])
+}
+
+model PropertyAnalytic {
+  id          String   @id @default(cuid())
+  propertyId  String
+  date        DateTime @default(now())
+  views       Int      @default(0)
+  inquiries   Int      @default(0)
+  saves       Int      @default(0)
+  source      String?
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  @@index([propertyId, date])
+}
+
+// ── LEADS ────────────────────────────────────────────────────
+
+model Lead {
+  id              String      @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  inquiryType     InquiryType
+  source          LeadSource  @default(WEBSITE)
+  status          LeadStatus  @default(NEW)
+  priority        Int         @default(3) // 1=hot, 2=warm, 3=cool
+  budget          String?
+  timeline        String?
+  message         String?     @db.Text
+  aiSummary       String?     @db.Text
+  tags            String[]
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  followUpAt      DateTime?
+  convertedAt     DateTime?
+  lastContactedAt DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  propertyId      String?
+  property        Property?   @relation(fields: [propertyId], references: [id])
+  agentId         String?
+  agent           Agent?      @relation(fields: [agentId], references: [id])
+  assignedToId    String?
+  assignedTo      User?       @relation("AssignedLeads", fields: [assignedToId], references: [id])
+  appointments    Appointment[]
+  notes           LeadNote[]
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  userId    String
+  content   String   @db.Text
+  isPrivate Boolean  @default(false)
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// ── APPOINTMENTS ─────────────────────────────────────────────
+
+model Appointment {
+  id              String            @id @default(cuid())
+  type            AppointmentType
+  status          AppointmentStatus @default(PENDING)
+  scheduledAt     DateTime
+  durationMinutes Int               @default(30)
+  timezone        String            @default("America/Toronto")
+  title           String
+  notes           String?           @db.Text
+  meetingLink     String?
+  googleEventId   String?
+  reminderSent    Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  leadId          String?
+  lead            Lead?             @relation(fields: [leadId], references: [id])
+  agentId         String?
+  agent           Agent?            @relation(fields: [agentId], references: [id])
+  userId          String?
+  user            User?             @relation("AgentAppointments", fields: [userId], references: [id])
+  propertyId      String?
+  property        Property?         @relation(fields: [propertyId], references: [id])
+  @@index([scheduledAt])
+  @@index([agentId, scheduledAt])
+}
+
+// ── BLOG ─────────────────────────────────────────────────────
+
+model BlogPost {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  excerpt     String     @db.Text
+  body        String     @db.Text
+  coverImage  String?
+  category    String
+  tags        String[]
+  readTime    String?
+  status      BlogStatus @default(DRAFT)
+  seoTitle    String?
+  seoDesc     String?
+  viewCount   Int        @default(0)
+  authorId    String?
+  authorName  String
+  authorPhoto String?
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  @@index([status, publishedAt])
+}
+
+// ── TESTIMONIALS ─────────────────────────────────────────────
+
+model Testimonial {
+  id            String   @id @default(cuid())
+  name          String
+  location      String
+  rating        Int      @default(5)
+  text          String   @db.Text
+  propertyType  String?
+  initials      String?
+  photo         String?
+  isApproved    Boolean  @default(false)
+  isFeatured    Boolean  @default(false)
+  agentId       String?
+  agent         Agent?   @relation(fields: [agentId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ── NEWSLETTER ───────────────────────────────────────────────
+
+model Subscriber {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String?
+  isActive    Boolean   @default(true)
+  source      String?
+  tags        String[]
+  subscribedAt DateTime @default(now())
+  unsubscribedAt DateTime?
+}
+
+// ── MARKET REPORTS ───────────────────────────────────────────
+
+model MarketReport {
+  id          String   @id @default(cuid())
+  title       String
+  city        String?
+  country     Country?
+  period      String
+  summary     String   @db.Text
+  fileUrl     String?
+  coverImage  String?
+  isPublished Boolean  @default(false)
+  downloadCount Int    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── AUDIT LOG ────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entity     String
+  entityId   String?
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+  @@index([entity, entityId])
+  @@index([userId, createdAt])
+}
+
+// ── SITE CONFIG ───────────────────────────────────────────────
+
+model SiteConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  type      String   @default("string") // string | json | boolean | number
+  updatedAt DateTime @updatedAt
+}
