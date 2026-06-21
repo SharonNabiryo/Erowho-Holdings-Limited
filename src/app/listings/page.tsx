@@ -1,6 +1,6 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   SlidersHorizontal, LayoutGrid, List, X, Search, MapPin, GitCompare,
@@ -18,9 +18,8 @@ const PRICES  = [{ v:'',l:'Any Price' },{ v:'0-500000',l:'Under $500K' },{ v:'50
 const BEDS    = [0,1,2,3,4,5]
 const SORTS   = [{ v:'newest',l:'Newest First' },{ v:'price-asc',l:'Price ↑' },{ v:'price-desc',l:'Price ↓' },{ v:'beds',l:'Most Beds' }]
 
-export default function ListingsPage() {
-  const sp     = useSearchParams()
-  const router = useRouter()
+function ListingsContent() {
+  const sp = useSearchParams()
 
   const [type,      setType]      = useState(sp.get('type')    ?? '')
   const [city,      setCity]      = useState(sp.get('city')    ?? '')
@@ -235,5 +234,13 @@ export default function ListingsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-ivory-50" />}>
+      <ListingsContent />
+    </Suspense>
   )
 }
