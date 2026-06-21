@@ -2,6 +2,7 @@
  * Erowho Holdings — Service Layer v2
  */
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export type ServiceResult<T> = {
   data: T | null
@@ -40,7 +41,7 @@ export const PropertyService = {
           { neighborhood:{ contains: query, mode:'insensitive' } },
         ]
       }
-      const orderBy = sortBy==='price-asc'? {price:'asc'} : sortBy==='price-desc'? {price:'desc'} : sortBy==='beds'? {beds:'desc'} : {createdAt:'desc' as const}
+      const orderBy: Prisma.PropertyOrderByWithRelationInput = sortBy==='price-asc'? {price:'asc'} : sortBy==='price-desc'? {price:'desc'} : sortBy==='beds'? {beds:'desc'} : {createdAt:'desc'}
       const [results, total] = await Promise.all([
         prisma.property.findMany({ where, orderBy, take: limit, skip: (page-1)*limit, include:{ agent:{ include:{ user:true } } } }),
         prisma.property.count({ where }),

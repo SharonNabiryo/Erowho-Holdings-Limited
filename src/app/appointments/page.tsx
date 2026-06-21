@@ -57,7 +57,7 @@ export default function AppointmentsPage() {
   const [confirmed,    setConfirmed]    = useState<any>(null)
 
   const dates  = getAvailableDates()
-  const agents = AGENTS.filter(a => a.isActive !== false)
+  const agents = AGENTS
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<F>({
     resolver: zodResolver(schema),
